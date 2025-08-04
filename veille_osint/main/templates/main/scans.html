@@ -1,0 +1,191 @@
+{% extends 'main/blank_page.html' %}
+{% load i18n static %}
+
+{% block scans_active %}active{% endblock %}
+
+
+{% block page_content %}
+<div class="title-wrapper pt-30">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <div class="title">
+                <h2>{% trans "Scans" %}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-6 d-flex justify-content-md-end">
+            <button class="btn btn-primary float-right" data-bs-toggle="modal" data-bs-target="#newScanModal">{% trans "Nouveau scan" %}</button>
+        </div>
+    </div>
+    <!-- end row -->
+</div>
+
+<div class="tables-wrapper">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card-style mb-30">
+                <div class="table-wrapper table-responsive">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>
+                            <h6>#</h6>
+                            </th>
+                            <th>
+                            <h6>Name</h6>
+                            </th>
+                            <th>
+                            <h6>Sites</h6>
+                            </th>
+                            <th>
+                            <h6>Num. Results</h6>
+                            </th>
+                            <th>
+                            <h6>Status</h6>
+                            </th>
+                            <th>
+                            <h6>Action</h6>
+                            </th>
+                        </tr>
+                        <!-- end table row-->
+                        </thead>
+                        <tbody>
+                        {% for scan in scans %}
+                        <tr>
+                            <td>
+                                <input 
+                                    type="checkbox" 
+                                    class="select-row form-check-input" 
+                                    id="scan-{{ scan.id }}" 
+                                />
+                            </td>
+                            <td class="min-width">
+                                <p>{{ scan.name }}</p>
+                            </td>
+                            <td class="min-width">
+                                <p>
+                                    {% for site in scan.sites.all %}
+                                        <a href="{{ site.get_absolute_url }}">{{ site.name }}</a>{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                </p>
+                            </td>
+
+                            <td>
+                                <p>
+                                    {% if scan.results.count == 0 %}
+                                        <span class="text-muted" >No results</span>
+                                    {% else %}
+                                        <a href="#">{{ scan.results.count }}</a>
+                                    {% endif %} 
+                                </p>
+                            </td>
+
+                            <td class="min-width">
+                                {% if scan.status == 'pending' %}
+                                    <span class="status-btn active-btn">{% trans "Pending" %}</span>
+                                {% elif scan.status == 'failed' %}
+                                    <span class="status-btn close-btn">{% trans 'Failed' %}</span>
+                                {% else %}
+                                    <span class="status-btn success-btn">{% trans "Termine" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action">
+                                    <button class="text-danger">
+                                        <i class="lni lni-trash-can"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                <!-- end table -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="newScanModal" tabindex="-1" role="dialog" aria-labelledby="newScanModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="newScanModalLabel">{% trans "New Scan" %}</h5>
+        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form method="post" novalidate id="newScanForm">
+            {% if form.errors %}
+                <div class="alert-box danger-alert pl-100">
+                  <div class="left">
+                    <h5 class="text-bold">{% trans "Erreur!" %}</h5>
+                  </div>
+                  <div class="alert">
+                    <p class="text-medium">
+                      {% trans "Corriger les erreurs pour pouvoir soumettre" %}
+                    </p>
+                    <ul class="text-danger">
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                  </div>
+                </div>
+            {% endif %}
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.name.label_tag }}
+                {{ form.name }}
+                {% for error in form.name.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
+            <div class="form-group mt-2">
+                {{ form.sites.label_tag }}
+                {{ form.sites }}
+                {% for error in form.sites.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
+
+            <div class="form-group mt-2">
+                {{ form.keywords.label_tag }}
+                {{ form.keywords }}
+                {% for error in form.keywords.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
+            
+            <hr class="my-2">
+
+            <h5>Schedule</h5>
+            <div class="form-group mt-2">
+                {{ form.schedule_time.label_tag }}
+                {{ form.schedule_time }}
+                {% for error in form.schedule_time.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
+            <div class="form-group mt-2">
+                {{ form.frequency.label_tag }}
+                {{ form.frequency }}
+                {% for error in form.frequency.errors %}
+                    <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
+        </form>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="document.getElementById('newScanForm').submit();">
+            {% trans 'Soumettre' %}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
