@@ -12,6 +12,8 @@ def blank_page(request):
     """
     return render(request, 'main/blank_page.html')
 
+def index(request):
+    return redirect('dashboard')
 
 def dashboard(request):
     """
@@ -36,6 +38,16 @@ def scans(request):
         form = ScanForm()
 
     return render(request, 'main/scans.html', {'form': form, 'scans': scans})
+
+def scan_detail(request, scan_id):
+    """
+    Render the detail page for a specific Scan.
+    """
+    scan = Scan.objects.get(id=scan_id)
+    scan_results = ScanResult.objects.filter(scan=scan)
+
+    return render(request, 'main/scan_detail.html', {'scan': scan, 'scan_results': scan_results})
+
 
 def alerts(request):
     """
