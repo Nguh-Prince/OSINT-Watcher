@@ -53,3 +53,20 @@ class Journal(ScanResult):
     titre = models.CharField(max_length=200)
     auteur = models.CharField(max_length=100)
 
+class Alert(models.Model):
+    result = models.OneToOneField(ScanResult, related_name='alert', on_delete=models.CASCADE)
+    alert_date = models.DateTimeField(auto_now_add=True)
+    severity = models.CharField(max_length=10, choices=[('low', 'Low'), ('medium', 'Medium'), ('high', 'High')])
+    message = models.TextField(null=True, blank=True)
+    resolved = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Alert on {self.alert_date.strftime('%Y-%m-%d %H:%M:%S')}"
+
+class FalseAlert(models.Model):
+    alert = models.OneToOneField(Alert, related_name='false_alerts', on_delete=models.CASCADE)
+    date_flagged = models.DateTimeField(auto_now_add=True)
+    reason = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"False Alert for {self.alert.result.name} on {self.date_flagged.strftime('%Y-%m-%d %H:%M:%S')}"

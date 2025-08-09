@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 from dotenv import dotenv_values
 
+from django.urls import reverse_lazy
+
 config = dotenv_values(".env")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -126,3 +128,13 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 NEWS_API_KEY = config.get('NEWS_API_KEY', 'your_default_news_api_key')
+
+LOGIN_REDIRECT_URL = reverse_lazy('dashboard')
+LOGIN_URL = reverse_lazy('login')
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'jamiecho456@gmail.com'
+EMAIL_HOST_PASSWORD = 'xrje cdzt dmjk vdtq'

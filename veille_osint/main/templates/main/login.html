@@ -1,0 +1,121 @@
+{% load static i18n %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="{% static 'main/assets/images/favicon.svg' %}" type="image/x-icon" />
+    <title>Sign In | Veille OSINT</title>
+
+    <!-- ========== All CSS files linkup ========= -->
+    <link rel="stylesheet" href="{% static 'main/assets/css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/assets/css/lineicons.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/assets/css/materialdesignicons.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/assets/css/fullcalendar.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/assets/css/main.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/assets/css/datatables.css' %}" />
+  </head>
+  <body>
+    <!-- ======== Preloader =========== -->
+    <div id="preloader">
+      <div class="spinner"></div>
+    </div>
+
+    <main class="main-wrapper" style="margin-left: 0;">
+      <!-- ========== signin-section start ========== -->
+      <section class="signin-section" style="display: flex;flex-direction: column;justify-content: center;align-items: center;height: 100vh;">
+        <div class="container-fluid">
+          <div class="row g-0 auth-row mt-3">
+            <div class="col-lg-6">
+              <div class="auth-cover-wrapper bg-primary-100">
+                <div class="auth-cover">
+                  <div class="title text-center">
+                    <h1 class="text-primary mb-10">Bienvenue</h1>
+                    <p class="text-medium">
+                      Connectez-vous à votre compte existant pour continuer
+                    </p>
+                  </div>
+                  
+                  <div class="shape-image">
+                    <img src="{% static 'main/assets/images/auth/shape.svg' %}" alt="" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- end col -->
+            <div class="col-lg-6">
+              <div class="signin-wrapper">
+                <div class="form-wrapper">
+                  <form action="{% url 'login' %}" method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                      <div class="col-12">
+                        <div class="input-style-1">
+                          <label for="{{ form.username.id_for_label }}">Nom d'utilisateur</label>
+                          <input type="text"
+                                name="{{ form.username.name }}"
+                                id="{{ form.username.id_for_label }}"
+                                placeholder="Par ex. johndoe"
+                                value="{{ form.username.value|default:'' }}"
+                          >
+                          {% if form.username.errors %}
+                              <div class="text-danger small">
+                                  {{ form.username.errors.0 }}
+                              </div>
+                          {% endif %}
+                        </div>
+                      </div>
+                      <!-- end col -->
+                      <div class="col-12">
+                        <div class="input-style-1">
+                          <label for="{{ form.password.id_for_label }}">Mot de passe</label>
+                          <input type="password"
+                                name="{{ form.password.name }}"
+                                id="{{ form.password.id_for_label }}"
+                                placeholder="Mot de passe"
+                          >
+                          {% if form.password.errors %}
+                            <div class="text-danger small">
+                                {{ form.password.errors.0 }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      </div>
+                      <div class="col-12">
+                        <div class="button-group d-flex justify-content-center flex-wrap">
+                          <button class="main-btn primary-btn btn-hover w-100 text-center">
+                            Sign In
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- end row -->
+                  </form>
+                </div>
+              </div>
+            </div>
+            <!-- end col -->
+          </div>
+          <!-- end row -->
+        </div>
+      </section>
+      <!-- ========== signin-section end ========== -->
+    </main>
+    <!-- ======== main-wrapper end =========== -->
+
+    <!-- ========= All Javascript files linkup ======== -->
+    <script src="{% static 'main/assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'main/assets/js/Chart.min.js' %}"></script>
+    <script src="{% static 'main/assets/js/dynamic-pie-chart.js' %}"></script>
+    <script src="{% static 'main/assets/js/moment.min.js' %}"></script>
+    <script src="{% static 'main/assets/js/fullcalendar.js' %}"></script>
+    <script src="{% static 'main/assets/js/jvectormap.min.js' %}"></script>
+    <script src="{% static 'main/assets/js/world-merc.js' %}"></script>
+    <script src="{% static 'main/assets/js/polyfill.js' %}"></script>
+    <script src="{% static 'main/assets/js/jquery.js' %}"></script>
+    <script src="{% static 'main/assets/js/datatables.js' %}"></script>
+    <script src="{% static 'main/assets/js/main.js' %}"></script>
+  </body>
+</html>

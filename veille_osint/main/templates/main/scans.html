@@ -91,7 +91,14 @@
                             </td>
                             <td>
                                 <div class="action">
-                                    <button class="text-danger">
+                                    <button 
+                                        class="text-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-id="{{ scan.id }}"
+                                        data-type="scan"
+                                        onclick="document.getElementById('deleteForm').setAttribute('action', '/scans/' + this.getAttribute('data-id') + '/delete/');"
+                                    >
                                         <i class="lni lni-trash-can"></i>
                                     </button>
                                 </div>

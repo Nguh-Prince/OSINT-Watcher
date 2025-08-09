@@ -1,27 +1,14 @@
 {% extends 'main/blank_page.html' %}
 {% load i18n static %}
 
+{% block scans_active %}active{% endblock %}
+
 {% block page_content %}
 <div class="title-wrapper pt-30">
     <div class="row align-items-center">
         <div class="col-md-6">
             <div class="title">
-                <h2>{% trans "Scans" %}</h2>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="breadcrumb-wrapper">
-                <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
-                    <a href="{% url 'scans' %}">{% trans "Scans" %}</a>
-                    </li>
-                    <li class="breadcrumb-item active" aria-current="page">
-                    {{scan.name}}
-                    </li>
-                </ol>
-                </nav>
+                <h2>{% trans "Scan Rapide" %}</h2>
             </div>
         </div>
     </div>
@@ -52,13 +39,13 @@
                             <h6>{% trans "Type" %}</h6>
                             </th>
                             <th>
-                            <h6>Type</h6>
+                            <h6>Actions</h6>
                             </th>
                         </tr>
                         <!-- end table row-->
                         </thead>
                         <tbody>
-                        {% for result in scan_results %}
+                        {% for result in results %}
                         <tr>
                             <td>
                                 <input 
@@ -96,18 +83,13 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if result.alert %}
-                                    <span class="text-danger">Alerte</span>
-                                {% else %}
-                                    <span class="text-muted">Resultat</span>
-                                {% endif %}
-                                <!-- <div class="action">
+                                <div class="action">
                                     <button class="btn btn-primary" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#resultModal-{{ result.id }}">
                                         {% trans "Faux negatif" %}
                                     </button>
-                                </div> -->
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -119,10 +101,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    new DataTable('#results-table');
-</script>
 {% endblock %}

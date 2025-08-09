@@ -1,0 +1,190 @@
+{% extends 'main/blank_page.html' %}
+{% load static i18n %}
+
+{% block alertes_active %}active{% endblock %}
+
+{% block page_content %}
+<div class="title-wrapper pt-30">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <div class="title">
+                <h2>{% trans "Alertes" %}</h2>
+            </div>
+        </div>
+
+    </div>
+    <!-- end row -->
+</div>
+
+<div class="tables-wrapper">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card-style mb-30">
+                <div class="table-wrapper table-responsive">
+                    <table class="table" id="results-table">
+                        <thead>
+                        <tr>
+                            <th>
+                            <input type="checkbox" class="form-check-input select-all" id="select-all-alerts" />
+                            </th>
+                            <th>
+                            <h6>Titre</h6>
+                            </th>
+                            <th>
+                                <h6>{% trans "Message" %}</h6>
+                            </th>
+                            <th>
+                                <h6>{% trans "Scan" %}</h6>
+                            </th>
+                            <th>
+                            <h6>Severite</h6>
+                            </th>
+                            <th>
+                            <h6>Type</h6>
+                            </th>
+                            <th>
+                            <h6>Date</h6>
+                            </th>
+                            <th>
+                            <h6>Action</h6>
+                            </th>
+                        </tr>
+                        <!-- end table row-->
+                        </thead>
+                        <tbody>
+                        {% for alert in alerts %}
+                        <tr>
+                            <td>
+                                <input 
+                                    type="checkbox" 
+                                    class="select-row form-check-input" 
+                                    id="alert-{{ alert.id }}" 
+                                />
+                            </td>
+                            <td class="min-width">
+                                <p style="text-decoration: underline;">
+                                    {% if alert.result.journal %}
+                                    {{ alert.result.journal.titre|truncatechars:50|default:"<span class='text-muted'>---</span>"|safe }}
+                                    {% else %}
+                                    <span class="text-muted">---</span>
+                                    {% endif %}
+                                </p>
+                            </td>
+                            <td class="min-width">
+                                <p>
+                                    {% if alert.message %}
+                                    {{ alert.message|truncatechars:100|default:"<span class='text-muted'>---</span>"|safe }}
+                                    {% else %}
+                                    <span class="text-muted">---</span>
+                                    {% endif %}
+                                </p>
+                            </td>
+                            <td>
+                                <p>
+                                    {{ alert.result.scan.name|default:"<span class='text-muted'>---</span>"|safe }}
+                                </p>
+                            </td>
+                            <td class="min-width">
+                                <p>
+                                    {{ alert.severity|capfirst }}
+                                </p>
+                            </td>
+
+                            <td>
+                                <p>
+                                    {% if alert.result.journal %}
+                                    {% trans "Journal" %}
+                                    {% else %}
+                                    <span class="text-muted">---</span>
+                                    {% endif %}
+                                </p>
+                            </td>
+
+                            <td class="min-width">
+                                {{ alert.alert_date|date:"Y-m-d H:i" }}
+                            </td>
+                            <td>
+                                <div class="d-flex flex-row justify-content-between align-items-center">
+                                    <div class="action">
+                                        <button 
+                                            class="text-danger"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteModal" 
+                                            data-id="{{ alert.id }}" 
+                                            data-type="alert"
+                                            onclick="document.getElementById('deleteForm').setAttribute('action', '/alerts/' + this.getAttribute('data-id') + '/delete/');"
+                                        >
+                                            <i class="lni lni-trash-can"></i>
+                                        </button>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-warning btn-sm false-alert-btn"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#falseAlertModal"
+                                        data-id="{{ alert.id }}"
+                                        onclick="document.getElementById('falseAlertForm').setAttribute('action', '/alerts/' + this.getAttribute('data-id') + '/mark-false/');"
+                                    >
+                                        Fausse Alerte
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                <!-- end table -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="falseAlertModal" tabindex="-1" aria-labelledby="falseAlertModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" id="falseAlertForm">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="falseAlertModalLabel">Marquer l;Alerte comme Fausse</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="reason" class="form-label">Raison</label>
+            <textarea class="form-control" id="reason" name="reason" rows="4" placeholder="Enter the reason..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button submit" class="btn btn-warning">Marquer comme Fausse Alerte</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    new DataTable('#results-table');
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+//     const falseAlertForm = document.getElementById("falseAlertForm");
+//     const falseAlertButtons = document.querySelectorAll(".false-alert-btn");
+
+//     falseAlertButtons.forEach(button => {
+//         button.addEventListener("click", function () {
+//             const id = this.getAttribute("data-id");
+//             falseAlertForm.setAttribute("action", `/alert/${id}/false/`);
+
+//             // falseAlertForm.submit();
+//         });
+//     });
+});
+</script>
+{% endblock %}

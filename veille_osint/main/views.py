@@ -1,6 +1,8 @@
 from django.contrib import messages
+from django.urls import reverse
 from django.utils.translation import gettext as _
-from django.shortcuts import render, redirect
+from django.views.decorators.http import require_POST
+from django.shortcuts import get_object_or_404, render, redirect
 
 from .forms import *
 from .models import *
@@ -39,6 +41,39 @@ def scans(request):
 
     return render(request, 'main/scans.html', {'form': form, 'scans': scans})
 
+def quick_scan(request):
+    keywords = request.GET.get("keywords")
+    results = []
+
+    if keywords:
+        # Create a Scan object (no schedule)
+        scan = Scan.objects.create(
+            name=f"Quick Scan: {keywords}",
+            keywords=keywords,
+            status="pending"
+        )
+        results = ScanResult.objects.filter(scan=scan)
+
+        return render(request, "main/quick_scan_results.html", {
+            "scan": scan, "results": results
+        })
+
+    return render(request, "main/quick_scan_form.html")
+
+@require_POST
+def delete_scan(request, scan_id):
+    """
+    Handle Scan deletion.
+    """
+    try:
+        scan = get_object_or_404(Scan, id=scan_id)
+        scan.delete()
+        messages.success(request, _("Scan supprime avec succes!"))
+    except Scan.DoesNotExist:
+        messages.error(request, _("Le scan n'existe pas."))
+
+    return redirect('scans')
+
 def scan_detail(request, scan_id):
     """
     Render the detail page for a specific Scan.
@@ -48,12 +83,37 @@ def scan_detail(request, scan_id):
 
     return render(request, 'main/scan_detail.html', {'scan': scan, 'scan_results': scan_results})
 
-
 def alerts(request):
     """
     Render the alerts template.
     """
-    return render(request, 'main/alerts.html')
+    alerts = Alert.objects.filter(resolved=False, false_alerts__isnull=True).order_by('-alert_date')
+    return render(request, 'main/alerts.html', {'alerts': alerts})
+
+@require_POST
+def delete_alert(request, alert_id):
+    """
+    Handle Alert deletion.
+    """
+    try:
+        alert = get_object_or_404(Alert, id=alert_id)
+        alert.delete()
+        messages.success(request, _("Alerte supprimee avec succes!"))
+    except Alert.DoesNotExist:
+        messages.error(request, _("L'alerte n'existe pas."))
+
+    return redirect('alerts')
+
+@require_POST
+def mark_false_alert(request, alert_id):
+    alert = get_object_or_404(Alert, pk=alert_id)
+
+    # Create the FalseAlert only if it doesn't exist yet
+    if not hasattr(alert, 'false_alerts'):
+        reason = request.POST.get("reason", "")
+        FalseAlert.objects.create(alert=alert, reason=reason)
+
+    return redirect(reverse('alerts'))  # Change to your alerts list view name
 
 def reports(request):
     """
