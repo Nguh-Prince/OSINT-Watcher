@@ -70,3 +70,22 @@ class FalseAlert(models.Model):
 
     def __str__(self):
         return f"False Alert for {self.alert.result.name} on {self.date_flagged.strftime('%Y-%m-%d %H:%M:%S')}"
+    
+
+class Report(models.Model):
+    name = models.CharField(max_length=100, null=True)
+    report_start_date = models.DateField()
+    report_end_date = models.DateField()
+    scans = models.ManyToManyField(Scan, related_name='reports')
+    alerts = models.ManyToManyField(Alert, related_name='reports', blank=True)
+    file = models.FileField(upload_to='uploads/reports/', null=True, blank=True)
+
+    def __str__(self):
+        return f"Report from {self.report_start_date} to {self.report_end_date}"
+
+class ReportRecipients(models.Model):
+    report = models.ForeignKey(Report, related_name='recipients', on_delete=models.CASCADE)
+    email = models.EmailField()
+
+    def __str__(self):
+        return f"Recipient for report {self.report.id} - {self.email}"

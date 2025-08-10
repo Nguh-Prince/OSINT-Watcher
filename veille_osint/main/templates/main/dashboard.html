@@ -17,130 +17,45 @@
     </div>
     <!-- ========== title-wrapper end ========== -->
     <div class="row">
-        <div class="col-xl-3 col-lg-4 col-sm-6">
+        <div class="col-xl-4 col-lg-4 col-sm-6">
             <div class="icon-card mb-30">
             <div class="icon purple">
-                <i class="lni lni-cart-full"></i>
+                <i class="lni lni-warning"></i>
             </div>
             <div class="content">
                 <h6 class="mb-10">Alertes</h6>
-                <h3 class="text-bold mb-10">34567</h3>
+                <h3 class="text-bold mb-10">{{alerts_count}}</h3>
                 <p class="text-sm text-success">
-                <i class="lni lni-arrow-up"></i> +2.00%
-                <span class="text-gray">(30 days)</span>
                 </p>
             </div>
             </div>
             <!-- End Icon Cart -->
         </div>
         <!-- End Col -->
-        <div class="col-xl-3 col-lg-4 col-sm-6">
+        <div class="col-xl-4 col-lg-4 col-sm-6">
             <div class="icon-card mb-30">
             <div class="icon success">
-                <i class="lni lni-dollar"></i>
+                <i class="lni lni-cross-circle"></i>
             </div>
             <div class="content">
                 <h6 class="mb-10">Faux positifs</h6>
-                <h3 class="text-bold mb-10">$74,567</h3>
-                <p class="text-sm text-success">
-                <i class="lni lni-arrow-up"></i> +5.45%
-                <span class="text-gray">Increased</span>
-                </p>
+                <h3 class="text-bold mb-10">{{false_alerts_count}}</h3>
             </div>
             </div>
             <!-- End Icon Cart -->
         </div>
         <!-- End Col -->
-        <div class="col-xl-3 col-lg-4 col-sm-6">
+        <div class="col-xl-4 col-lg-4 col-sm-6">
             <div class="icon-card mb-30">
             <div class="icon primary">
-                <i class="lni lni-credit-cards"></i>
+                <i class="lni lni-magnifier"></i>
             </div>
             <div class="content">
                 <h6 class="mb-10">Scans</h6>
-                <h3 class="text-bold mb-10">$24,567</h3>
-                <p class="text-sm text-danger">
-                <i class="lni lni-arrow-down"></i> -2.00%
-                <span class="text-gray">Expense</span>
-                </p>
+                <h3 class="text-bold mb-10">{{scans_count}}</h3>
             </div>
             </div>
             <!-- End Icon Cart -->
-        </div>
-        <!-- End Col -->
-        <div class="col-xl-3 col-lg-4 col-sm-6">
-            <div class="icon-card mb-30">
-            <div class="icon orange">
-                <i class="lni lni-user"></i>
-            </div>
-            <div class="content">
-                <h6 class="mb-10">Evenements</h6>
-                <h3 class="text-bold mb-10">34567</h3>
-                <p class="text-sm text-danger">
-                <i class="lni lni-arrow-down"></i> -25.00%
-                <span class="text-gray"> Earning</span>
-                </p>
-            </div>
-            </div>
-            <!-- End Icon Cart -->
-        </div>
-        <!-- End Col -->
-    </div>
-    <!-- End Row -->
-    <div class="row">
-        <div class="col-lg-7">
-            <div class="card-style mb-30">
-            <div class="title d-flex flex-wrap justify-content-between">
-                <div class="left">
-                <h6 class="text-medium mb-10">Yearly Stats</h6>
-                <h3 class="text-bold">$245,479</h3>
-                </div>
-                <div class="right">
-                <div class="select-style-1">
-                    <div class="select-position select-sm">
-                    <select class="light-bg">
-                        <option value="">Yearly</option>
-                        <option value="">Monthly</option>
-                        <option value="">Weekly</option>
-                    </select>
-                    </div>
-                </div>
-                <!-- end select -->
-                </div>
-            </div>
-            <!-- End Title -->
-            <div class="chart">
-                <canvas id="Chart1" style="width: 100%; height: 400px; margin-left: -35px;"></canvas>
-            </div>
-            <!-- End Chart -->
-            </div>
-        </div>
-        <!-- End Col -->
-        <div class="col-lg-5">
-            <div class="card-style mb-30">
-            <div class="title d-flex flex-wrap align-items-center justify-content-between">
-                <div class="left">
-                <h6 class="text-medium mb-30">Sales/Revenue</h6>
-                </div>
-                <div class="right">
-                <div class="select-style-1">
-                    <div class="select-position select-sm">
-                    <select class="light-bg">
-                        <option value="">Yearly</option>
-                        <option value="">Monthly</option>
-                        <option value="">Weekly</option>
-                    </select>
-                    </div>
-                </div>
-                <!-- end select -->
-                </div>
-            </div>
-            <!-- End Title -->
-            <div class="chart">
-                <canvas id="Chart2" style="width: 100%; height: 400px; margin-left: -45px;"></canvas>
-            </div>
-            <!-- End Chart -->
-            </div>
         </div>
         <!-- End Col -->
     </div>
@@ -156,7 +71,7 @@
             <div class="card-style mb-30">
             <div class="title d-flex flex-wrap align-items-center justify-content-between">
                 <div class="left">
-                <h6 class="text-medium mb-30">Sales History</h6>
+                <h6 class="text-medium mb-30">Historique des alertes</h6>
                 </div>
                 <div class="right">
                 <div class="select-style-1">

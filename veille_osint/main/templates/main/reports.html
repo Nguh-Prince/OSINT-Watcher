@@ -1,0 +1,180 @@
+{% extends 'main/blank_page.html' %}
+{% load i18n static %}
+
+{% block reports_active %}active{% endblock %}
+
+{% block page_content %}
+<div class="title-wrapper pt-30">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <div class="title">
+                <h2>{% trans "Rapports" %}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-6 d-flex justify-content-md-end">
+            <button 
+                class="btn btn-primary float-right" 
+                data-bs-toggle="modal" 
+                data-bs-target="#createReportModal"
+            >{% trans "Generer un rapport" %}</button>
+        </div>
+    </div>
+    <!-- end row -->
+</div>
+
+<div class="tables-wrapper">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card-style mb-30">
+                <div class="table-wrapper table-responsive">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>
+                            <h6>#</h6>
+                            </th>
+                            <th>
+                            <h6>Nom</h6>
+                            </th>
+                            <th>
+                            <h6>Date de debut</h6>
+                            </th>
+                            <th>
+                            <h6>Date de fin</h6>
+                            </th>
+                            <th>
+                            <h6>Scans/Alertes</h6>
+                            </th>
+                            <th>
+                            <h6>Action</h6>
+                            </th>
+                        </tr>
+                        <!-- end table row-->
+                        </thead>
+                        <tbody>
+                        {% for report in reports %}
+                        <tr>
+                            <td>
+                                <input 
+                                    type="checkbox" 
+                                    class="select-row form-check-input" 
+                                    id="report-{{ report.id }}" 
+                                />
+                            </td>
+                            <td class="min-width">
+                                <p style="text-decoration: underline;"><a style="text-decoration: underline;" href="#">{{ report.name }}</a></p>
+                            </td>
+                            <td class="min-width">
+                                <p>
+                                    {% if report.start_date %}
+                                        {{ report.start_date|date:"d M Y" }}
+                                    {% else %}
+                                        <span class="text-muted">---</span>
+                                    {% endif %}
+                                </p>
+                            </td>
+
+                            <td class="min-width">
+                                <p>
+                                    {% if report.start_date %}
+                                        {{ report.start_date|date:"d M Y" }}
+                                    {% else %}
+                                        <span class="text-muted">---</span>
+                                    {% endif %}
+                                </p>
+                            </td>
+
+                            <td>
+                                <p>
+                                    {% if report.alerts %}
+                                        {{ report.alerts.count }}
+                                    {% else %}
+                                        <span class="text-muted">0</span>
+                                    {% endif %}
+
+                                    {% if report.scans %}
+                                        {{ report.scans.count }}
+                                    {% else %}
+                                        <span class="text-muted">0</span>
+                                    {% endif %}
+                                </p>
+                            </td>
+                            <td>
+                                <div class="action">
+                                    {% if report.file %}
+                                        <a href="{{ report.file.url }}" class="text-success" download>
+                                        <i class="lni lni-download"></i>
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">No file</span>
+                                    {% endif %}
+
+                                    <button 
+                                        class="text-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-id="{{ report.id }}"
+                                        data-type="report"
+                                        onclick="document.getElementById('deleteForm').setAttribute('action', '/reports/' + this.getAttribute('data-id') + '/delete/');"
+                                    >
+                                        <i class="lni lni-trash-can"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                <!-- end table -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createReportModal" tabindex="-1" aria-labelledby="createReportLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{% url 'reports' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="createReportLabel">Generer un Rapport</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            <div class="mb-3">
+                <label>Nom du rapport</label>
+                <input type="text" name="name" class="form-control" placeholder="Mon Rapport" required>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label>Date de debut</label>
+                        <input type="date" name="report_start_date" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label>Date de fin</label>
+                        <input type="date" name="report_end_date" class="form-control" required>
+                    </div>
+                </div>
+            </div>
+
+          <div class="mb-3">
+            <label>Destinataires (emails separe par des virgules)</label>
+            <input type="text" name="recipients" class="form-control" placeholder="user1@example.com, user2@example.com">
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Generer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

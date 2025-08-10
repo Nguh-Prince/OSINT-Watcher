@@ -122,6 +122,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -132,9 +135,9 @@ NEWS_API_KEY = config.get('NEWS_API_KEY', 'your_default_news_api_key')
 LOGIN_REDIRECT_URL = reverse_lazy('dashboard')
 LOGIN_URL = reverse_lazy('login')
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'jamiecho456@gmail.com'
-EMAIL_HOST_PASSWORD = 'xrje cdzt dmjk vdtq'
+EMAIL_BACKEND = config.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = config.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_USE_TLS = config.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_PORT = config.get('EMAIL_PORT', 587)
+EMAIL_HOST_USER = config.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = config.get('EMAIL_HOST_PASSWORD', '')

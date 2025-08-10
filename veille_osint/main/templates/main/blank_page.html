@@ -72,7 +72,7 @@
               <span class="text">{% trans 'Rapports' %}</span>
             </a>
           </li>
-          <li class="nav-item {% block notifications_active %}{% endblock %}">
+          <!-- <li class="nav-item {% block notifications_active %}{% endblock %}">
             <a href="{% url 'notifications' %}">
               <span class="icon">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -88,7 +88,7 @@
               </span>
               <span class="text">{% trans "Notifications" %}</span>
             </a>
-          </li>
+          </li> -->
           <span class="divider"><hr /></span>
 
           <li class="nav-item {% block settings_active %}{% endblock %}">
@@ -131,7 +131,7 @@
             <div class="col-lg-7 col-md-7 col-6">
               <div class="header-right">
                 <!-- profile start -->
-                <div class="profile-box ml-15">
+                <div class="profile-box ml-15 align-items-center gap-2">
                   <button class="dropdown-toggle bg-transparent border-0" type="button" id="profile"
                     data-bs-toggle="dropdown" aria-expanded="false">
                     <div class="profile-info">
@@ -145,6 +145,13 @@
                       </div>
                     </div>
                   </button>
+
+                  <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <label for="logout-button" type="submit" class="text-danger">Se deconnecter</label>
+                    <input type="submit" style="display: none;" id="logout-button">
+                  </form>
+                  
                   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profile">
                     <li>
                       <div class="author-info flex items-center !p-1">
@@ -193,6 +200,13 @@
       <section class="section">
         <div class="container-fluid">
           {% block page_content %}
+          <div>
+            {% if messages %}
+              {% for message in messages %}
+                  <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+              {% endfor %}
+            {% endif %}
+          </div>
           <!-- ========== title-wrapper start ========== -->
           <div class="title-wrapper pt-30">
             <div class="row align-items-center">

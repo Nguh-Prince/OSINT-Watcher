@@ -1,0 +1,111 @@
+{% extends 'main/blank_page.html' %}
+{% load i18n static %}
+
+{% block settings_active %}active{% endblock %}
+
+{% block page_content %}
+<div class="title-wrapper pt-30">
+            <div class="row align-items-center">
+              <div class="col-md-6">
+                <div class="title">
+                  <h2>Parametres</h2>
+                </div>
+              </div>
+            </div>
+            <!-- end row -->
+</div>
+<!-- ========== title-wrapper end ========== -->
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card-style settings-card-1 mb-30">
+      <div class="title mb-30 d-flex justify-content-between align-items-center">
+        <h6>Informations utilisateur</h6>
+        <button class="border-0 bg-transparent">
+          <i class="lni lni-pencil-alt"></i>
+        </button>
+      </div>
+      <div class="profile-info">
+        <form action="{% url 'settings' %}" method="post">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-lg-6">
+              <div class="input-style-1">
+                <label>Nom</label>
+                <input type="text" placeholder="John" value="{{ request.user.first_name }}" name="first_name" />
+              </div>  
+            </div>
+            <div class="col-lg-6">
+              <div class="input-style-1">
+                <label>Prenoms</label>
+                <input type="text" placeholder="Doe" value="{{ request.user.last_name }}" name="last_name" />
+              </div>
+            </div>
+          </div>
+          <div class="input-style-1">
+                <label>Nom d'utilisateur</label>
+                <input type="text" placeholder="johndoe" value="{{ request.user.username }}" name="username" />
+            </div>
+            <div class="input-style-1">
+                <label>Adresse mail</label>
+                <input type="email" placeholder="admin@example.com" value="{{ request.user.email }}" name="email" />
+            </div>
+            <div class="input-style-1">
+                <label>Mot de passe</label>
+                  <span type="button" class="text-primary mt-3" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                    Changer le mot de passe
+                  </span>
+                <!-- <input type="password" value="" readonly /> -->
+            </div>
+
+            <div class="row justify-content-center">
+              <button class="btn btn-primary" type="submit">Soummettre</button>
+            </div>
+        </form>
+      </div>
+    </div>
+    <!-- end card -->
+  </div>
+</div>
+
+<!-- Password Change Modal -->
+<div class="modal fade show" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{% url 'change_password' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="changePasswordModalLabel">Changer le mot de passe</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label>Ancien mot de passe</label>
+            <input type="password" name="old_password" class="form-control" required>
+            {% for error in password_form.old_password.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="mb-3">
+            <label>Nouveau mot de passe</label>
+            <input type="password" name="new_password1" class="form-control" required>
+            {% for error in password_form.new_password1.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="mb-3">
+            <label>Confirmer le nouveau mot de passe</label>
+            <input type="password" name="new_password2" class="form-control" required>
+            {% for error in password_form.new_password1.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-warning">Mettre à jour</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

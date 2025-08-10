@@ -1,8 +1,19 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404, render, redirect
+
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.models import User
+
+from datetime import datetime
+import io
+from django.core.files.base import ContentFile
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
 
 from .forms import *
 from .models import *
@@ -21,7 +32,12 @@ def dashboard(request):
     """
     Render the dashboard template.
     """
-    return render(request, 'main/dashboard.html')
+    context = {
+        'scans_count': Scan.objects.count(),
+        'alerts_count': Alert.objects.filter(resolved=False).count(),
+        'false_alerts_count': FalseAlert.objects.count(),
+    }
+    return render(request, 'main/dashboard.html', context=context)
 
 
 def scans(request):
@@ -119,7 +135,93 @@ def reports(request):
     """
     Render the reports template.
     """
-    return render(request, 'main/reports.html')
+    if request.method == "POST":
+        start_date = request.POST.get("report_start_date")
+        end_date = request.POST.get("report_end_date")
+        recipients_str = request.POST.get("recipients", "")
+        name = request.POST.get("name", "Rapport")
+
+        start_date_obj = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_date_obj = datetime.strptime(end_date, "%Y-%m-%d").date()
+
+        scans = Scan.objects.filter(scan_start_date__date__range=[start_date_obj, end_date_obj])
+        alerts = Alert.objects.filter(alert_date__date__range=[start_date_obj, end_date_obj])
+
+        # Create report entry
+        report = Report.objects.create(
+            report_start_date=start_date_obj,
+            report_end_date=end_date_obj,
+            name=name
+        )
+        report.scans.set(scans)
+        report.alerts.set(alerts)
+
+        # Generate PDF
+        buffer = io.BytesIO()
+        p = canvas.Canvas(buffer, pagesize=A4)
+        width, height = A4
+        y = height - 50
+        p.setFont("Helvetica-Bold", 16)
+        p.drawString(50, y, f"Report from {start_date} to {end_date}")
+        y -= 30
+
+        p.setFont("Helvetica-Bold", 14)
+        p.drawString(50, y, "Scans")
+        y -= 20
+        p.setFont("Helvetica", 12)
+        for scan in scans:
+            p.drawString(50, y, f"- {scan.scan_start_date} | {scan.status}")
+            y -= 15
+            if y < 50:
+                p.showPage()
+                y = height - 50
+
+        p.setFont("Helvetica-Bold", 14)
+        p.drawString(50, y, "Alerts")
+        y -= 20
+        p.setFont("Helvetica", 12)
+        for alert in alerts:
+            p.drawString(50, y, f"- {alert.alert_date} | {alert.message}")
+            y -= 15
+            if y < 50:
+                p.showPage()
+                y = height - 50
+
+        p.save()
+        buffer.seek(0)
+
+        # Save PDF to model
+        report.file.save(f"report_{start_date}_{end_date}.pdf", ContentFile(buffer.read()))
+        buffer.close()
+
+        # Save recipients
+        recipients = [email.strip() for email in recipients_str.split(",") if email.strip()]
+        for email in recipients:
+            ReportRecipients.objects.create(report=report, email=email)
+
+        return redirect("reports")  # redirect to your reports list view
+
+    reports = Report.objects.all().order_by('-report_start_date')
+    return render(request, 'main/reports.html', {'reports': reports})
+
+@require_POST
+@login_required
+def delete_report(request, report_id):
+    """
+    Handle Alert deletion.
+    """
+    try:
+        report = get_object_or_404(Report, id=report_id)
+        if report.file:
+            report.file.delete()  
+            
+        report.delete()
+        messages.success(request, _("Rapport supprime avec succes!"))
+    except Report.DoesNotExist:
+        messages.error(request, _("Le rapport n'existe pas."))
+
+    return redirect('reports')
+
 
 def notifications(request):
     """
@@ -128,10 +230,38 @@ def notifications(request):
     return render(request, 'main/notifications.html')
 
 def settings(request):
-    """
-    Render the settings template.
-    """
-    return render(request, 'main/settings.html')
+    if request.method == "POST":
+        user = request.user
+        user.first_name = request.POST.get("first_name", '')
+        user.last_name = request.POST.get("last_name", '')
+        user.username = request.POST.get("username")
+        user.email = request.POST.get("email")
+        user.save()
+        messages.success(request, "Profil mis à jour avec succès.")
+        return redirect("settings")
+
+    return render(request, "main/settings.html", {
+        "password_form": PasswordChangeForm(user=request.user),
+        "open_password_modal": False
+        })
+
+@login_required
+def change_password(request):
+    password_form = PasswordChangeForm(request.user, request.POST)
+    if request.method == "POST":
+        if password_form.is_valid():
+            user = password_form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, "Mot de passe changé avec succès.")
+            return redirect("settings")
+        else:
+            # Return errors to the settings page and trigger modal
+            return render(request, "main/settings.html", {
+                "password_form": password_form,
+                "open_password_modal": True
+            })
+
+    return redirect("settings")
 
 def login_view(request):
     """
