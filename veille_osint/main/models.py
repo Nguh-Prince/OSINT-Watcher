@@ -142,14 +142,3 @@ class ReportRecipients(models.Model):
 
     def __str__(self):
         return f"Recipient for report {self.report.id} - {self.email}"
-    
-
-"""
-from main.models import *
-from django.utils.timezone import now
-from datetime import timedelta
-
-scs = ScanSchedule.objects.create(name="Test Schedule", schedule_time=now() + timedelta(seconds=10), frequency='daily', keywords="hack, breach, leak, cybersecurity, ransomware")
-scs.save()
-scs.sites.set(Sites.objects.all())  # Assuming you have at least one site
-"""

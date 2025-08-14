@@ -17,6 +17,7 @@ from reportlab.lib.pagesizes import A4
 
 from .forms import *
 from .models import *
+from .utils import send_report_as_email
 
 # Create your views here.
 def blank_page(request):
@@ -198,6 +199,8 @@ def reports(request):
         recipients = [email.strip() for email in recipients_str.split(",") if email.strip()]
         for email in recipients:
             ReportRecipients.objects.create(report=report, email=email)
+
+        send_report_as_email(report)  # Call the email sending function
 
         return redirect("reports")  # redirect to your reports list view
 
