@@ -1,9 +1,15 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_delete, post_delete
 from django.dispatch import receiver
 from django.conf import settings
 from django.utils.timezone import now
 import requests
-from .models import Scan, ScanResult, Journal, Alert
+from .models import *
+
+from apscheduler.schedulers.background import BackgroundScheduler
+
+scheduler = BackgroundScheduler()
+scheduler.start()
+
 
 @receiver(post_save, sender=Scan)
 def fetch_news_for_scan(sender, instance, created, **kwargs):
@@ -16,6 +22,11 @@ def fetch_news_for_scan(sender, instance, created, **kwargs):
     keywords = instance.keywords.strip().replace(" ", "+").replace(",", "+")  # Format keywords for URL
     api_key = settings.NEWS_API_KEY
     url = f"https://newsapi.org/v2/everything?q={keywords}&apiKey={api_key}"
+
+    if instance.schedule and instance.schedule.last_scan:
+        instance.scan_start_date = instance.schedule.last_scan.time_run if not instance.scan_start_date else instance.scan_start_date
+        instance.scan_end_date = now() if not instance.scan_end_date else instance.scan_end_date
+        url += f"&from={instance.scan_start_date.isoformat()}&to={instance.scan_end_date.isoformat()}"  # Filter by last scan time
 
     try:
         response = requests.get(url)
@@ -63,6 +74,18 @@ def fetch_news_for_scan(sender, instance, created, **kwargs):
 
     except requests.RequestException as e:
         print(f"[NewsAPI] Error fetching articles for scan {instance.id}: {e}")
+
+@receiver(post_delete, sender=ScanSchedule)
+def delete_scan_schedule_jobs(sender, instance, **kwargs):
+    try:
+        scheduler.remove_job(f"scan_{instance.id}")
+    except Exception:
+        pass  # job might not exist
+
+    try:
+        scheduler.remove_job(f"scan_{instance.id}_weekly")
+    except Exception:
+        pass
 
 THREAT_KEYWORDS = {
     'high': ['ransomware', 'breach', 'leak', 'hacked'],
@@ -121,3 +144,14 @@ def send_alert_as_email(alert):
         print(f"Alert email sent for alert {alert.id}")
     except Exception as e:
         print(f"Failed to send alert email for alert {alert.id}: {e}")
+
+@receiver(pre_delete, sender=Report)
+def delete_report_file(sender, instance, **kwargs):
+    """
+    Delete the report file when the Report instance is deleted.
+    """
+    if instance.file:
+        instance.file.delete(save=False)
+        print(f"Deleted file for report {instance.id}")
+    else:
+        print(f"No file to delete for report {instance.id}")

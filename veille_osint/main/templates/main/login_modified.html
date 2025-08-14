@@ -1,0 +1,99 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCA INTELLIGENCE</title>
+    <link rel="stylesheet" href="{% static 'main/assets/css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/assets/css/lineicons.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/assets/css/materialdesignicons.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/assets/css/fullcalendar.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/assets/css/main.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/assets/css/datatables.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/assets/css/login.css' %}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        .cyber-bg {
+            flex: 1;
+            position: relative;
+            min-height: 400px;
+            background: url("{% static 'main/assets/images/cyber-network.jpg.webp' %}") center/cover;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <form class="login-form" id="loginForm" method="post">
+                {% csrf_token %}
+                <div class="site-title">
+                    <h1>CCA BANK</h1>
+                    <p>INTELLIGENCE</p>
+                </div>
+                <h2><i>Login</i></h2>
+
+                <div class="row">
+                      <div class="col-12">
+                        <div class="input-style-1">
+                          <label for="{{ form.username.id_for_label }}">Nom d'utilisateur</label>
+                          <input type="text"
+                                name="{{ form.username.name }}"
+                                id="{{ form.username.id_for_label }}"
+                                placeholder="Par ex. johndoe"
+                                value="{{ form.username.value|default:'' }}"
+                          >
+                          {% if form.username.errors %}
+                              <div class="text-danger small">
+                                  {{ form.username.errors.0 }}
+                              </div>
+                          {% endif %}
+                        </div>
+                      </div>
+                      <!-- end col -->
+                      <div class="col-12">
+                        <div class="input-style-1">
+                          <label for="{{ form.password.id_for_label }}">Mot de passe</label>
+                          <input type="password"
+                                name="{{ form.password.name }}"
+                                id="{{ form.password.id_for_label }}"
+                                placeholder="Mot de passe"
+                          >
+                          {% if form.password.errors %}
+                            <div class="text-danger small">
+                                {{ form.password.errors.0 }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      </div>
+                      <div class="col-12">
+                        <div class="button-group d-flex justify-content-center flex-wrap">
+                          <button type="submit" class="main-btn primary-btn btn-hover w-100 text-center login-button">
+                            Sign In
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+            </form>
+
+            <div class="cyber-bg">
+                <div class="overlay"></div>
+            </div>
+        </div>
+
+        <div class="footer-text">
+            <div class="legal-links">
+                <a href="#">Terms of Use</a>
+                <span class="separator">|</span>
+                <a href="#">Privacy Policy</a>
+            </div>
+            <p class="copyright">This site is protected by Ange & Co Enterprise.</p>
+        </div>
+    </div>
+
+    <!-- <script src="{% static 'main/assets/js/login.js' %}"></script> -->
+</body>
+</html>

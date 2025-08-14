@@ -1,6 +1,12 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime, timedelta
+
+scheduler = BackgroundScheduler()
+scheduler.start()
+
 class Sites(models.Model):
     name = models.CharField(max_length=100)
     url = models.URLField(null=True)
@@ -10,17 +16,64 @@ class Sites(models.Model):
     
 class ScanSchedule(models.Model):
     name = models.CharField(max_length=100, null=True)
-    site = models.ForeignKey(Sites, related_name='scan_schedules', on_delete=models.CASCADE)
+    sites = models.ManyToManyField(Sites, related_name='scan_schedules')
     schedule_time = models.DateTimeField()
     frequency = models.CharField(max_length=20, choices=[('daily', _('Daily')), ('weekly', _('Weekly')), ('monthly', _('Monthly'))])
     keywords = models.TextField(null=True, blank=True)
+    last_scan = models.ForeignKey("Scan", on_delete=models.SET_NULL, null=True)
+    next_scan_time = models.DateTimeField("Scan", null=True)
 
-    def __str__(self):
-        sites_str = ", ".join([site.name for site in self.sites.all()])
-        return f"Scan for {sites_str} on {self.scan_start_date.strftime('%Y-%m-%d %H:%M:%S')}"
+    # def __str__(self):
+    #     sites_str = ", ".join([site.name for site in self.sites.all()])
+    #     return f"Scan for {sites_str} on {self.scan_start_date.strftime('%Y-%m-%d %H:%M:%S')}"
+    
+    def create_scan(self):
+        """
+        Create a new Scan instance based on this schedule.
+        """
+        print(f"Creating scan for schedule: {self.id} at {datetime.now()}")
+        scan = Scan.objects.create(
+            name=f"{self.name} {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            schedule=self,
+            scan_start_date=self.schedule_time,
+            status='pending',
+            keywords=self.keywords
+        )
+        scan.sites.set(self.sites.all())
+        self.last_scan = scan
+
+        delta = None
+        if self.frequency == 'daily':
+            delta = timedelta(days=1)
+        elif self.frequency == 'weekly': 
+            delta = timedelta(weeks=1)
+        elif self.frequency == 'monthly':
+            delta = timedelta(days=30)
+
+        self.next_scan_time = datetime.now() + delta if delta else None
+
+        self.save()
+        return scan
+
+    def save(self, *args, **kwargs):
+        result = super().save(*args, **kwargs)
+
+        first_run = self.schedule_time
+        scheduler.add_job(self.create_scan, 'date', run_date=first_run, id=f'scan_{self.id}', replace_existing=True)
+
+        if self.frequency == 'daily':
+            scheduler.add_job(self.create_scan, 'interval', days=1, id=f'scan_{self.id}_interval', replace_existing=True)
+        elif self.frequency == 'weekly':
+            scheduler.add_job(self.create_scan, 'interval', weeks=1, id=f'scan_{self.id}_interval', replace_existing=True)
+        elif self.frequency == 'monthly':
+            scheduler.add_job(self.create_scan, 'interval', weeks=4, id=f'scan_{self.id}_interval', replace_existing=True)
+
+        return result
+
 
     
 class Scan(models.Model):
+    time_run = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=100, null=True)
     sites = models.ManyToManyField(Sites, related_name='scans')
     schedule = models.ForeignKey(ScanSchedule, related_name='scans', on_delete=models.SET_NULL, null=True, blank=True)
@@ -89,3 +142,14 @@ class ReportRecipients(models.Model):
 
     def __str__(self):
         return f"Recipient for report {self.report.id} - {self.email}"
+    
+
+"""
+from main.models import *
+from django.utils.timezone import now
+from datetime import timedelta
+
+scs = ScanSchedule.objects.create(name="Test Schedule", schedule_time=now() + timedelta(seconds=10), frequency='daily', keywords="hack, breach, leak, cybersecurity, ransomware")
+scs.save()
+scs.sites.set(Sites.objects.all())  # Assuming you have at least one site
+"""

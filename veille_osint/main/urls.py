@@ -19,6 +19,6 @@ urlpatterns = [
     path('notifications/', login_required(notifications), name='notifications'),
     path('settings/', login_required(settings), name='settings'),
     path('settings/change-password', login_required(change_password), name='change_password'),
-    path('login/', auth_views.LoginView.as_view(template_name='main/login.html'), name='login'),
+    path('login/', auth_views.LoginView.as_view(template_name='main/login_modified.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='/login/'), name='logout'),
 ]

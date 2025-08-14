@@ -1,0 +1,243 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #9B2FAE;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 900px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.login-box {
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.login-form {
+    flex: 1;
+    padding: 40px;
+}
+
+.site-title {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.site-title h1 {
+    color: #9B2FAE;
+    font-size: 42px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.site-title p {
+    color: #9B2FAE;
+    font-size: 18px;
+    letter-spacing: 6px;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+h2 {
+    color: #333;
+    font-size: 28px;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 15px 12px 40px;
+    border: none;
+    border-bottom: 2px solid #e0e0e0;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-bottom-color: #9B2FAE;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(155, 47, 174, 0.1);
+}
+
+.form-group input::placeholder {
+    color: #999;
+}
+
+.form-group .input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9B2FAE;
+    font-size: 20px;
+}
+
+/* Style pour l'icône d'œil */
+.form-group .toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9B2FAE;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.form-group input[type="password"]:not(:placeholder-shown) ~ .toggle-password {
+    opacity: 1;
+    visibility: visible;
+}
+
+.form-group .toggle-password:hover {
+    color: #8B1A9E;
+}
+
+.login-button {
+    width: 100%;
+    padding: 12px;
+    background: #9B2FAE;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+}
+
+.login-button:hover {
+    background: #8B1A9E;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(155, 47, 174, 0.3);
+}
+
+.cyber-bg {
+    flex: 1;
+    position: relative;
+    min-height: 400px;
+    background: url('../assets/images/cyber-network.jpg.webp') center/cover;
+    overflow: hidden;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.7) 100%);
+    z-index: 1;
+}
+
+.image-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: white;
+    width: 80%;
+    z-index: 2;
+}
+
+.image-content h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.image-content p {
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+.footer-text {
+    text-align: center;
+    color: white;
+    margin-top: 20px;
+}
+
+.legal-links {
+    margin-bottom: 8px;
+}
+
+.legal-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    transition: opacity 0.3s ease;
+}
+
+.legal-links a:hover {
+    opacity: 0.8;
+}
+
+.separator {
+    margin: 0 10px;
+    color: white;
+}
+
+.copyright {
+    font-size: 14px;
+    opacity: 0.9;
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .login-box {
+        flex-direction: column;
+    }
+
+    .login-form {
+        order: 2;
+    }
+
+    .cyber-bg {
+        order: 1;
+        min-height: 300px;
+    }
+
+    .site-title h1 {
+        font-size: 36px;
+    }
+
+    .site-title p {
+        font-size: 16px;
+        letter-spacing: 4px;
+    }
+}
