@@ -26,8 +26,8 @@
     <!-- ======== sidebar-nav start =========== -->
     <aside class="sidebar-nav-wrapper">
       <div class="navbar-logo">
-        <a href="index.html">
-          <img src="{% static 'main/assets/images/logo/logo.svg' %}" alt="logo" />
+        <a href="{% url 'dashboard' %}">
+          <img src="{% static 'main/assets/images/logo/cca_logo_transparent.png' %}" alt="logo" />
         </a>
       </div>
       <nav class="sidebar-nav">
@@ -137,7 +137,7 @@
                     <div class="profile-info">
                       <div class="info">
                         <div class="image">
-                          <img src="{% static 'main/assets/images/profile/profile-image.png' %}" alt="" />
+                          <img src="{% static 'main/assets/images/logo/cca_logo.jpeg' %}" alt="" />
                         </div>
                         <div>
                           <h6 class="fw-500">{{ request.user }}</h6>
