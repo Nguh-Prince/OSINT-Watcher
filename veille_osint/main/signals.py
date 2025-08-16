@@ -1,9 +1,11 @@
-from django.db.models.signals import post_save, pre_delete, post_delete
+from django.db.models.signals import pre_save, post_save, pre_delete, post_delete
 from django.dispatch import receiver
 from django.conf import settings
 from django.utils.timezone import now
 import requests
+
 from .models import *
+from .utils import get_recommendations_from_ai
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -54,7 +56,7 @@ def fetch_news_for_scan(sender, instance, created, **kwargs):
             scan_result = ScanResult.objects.create(
                 scan=instance,
                 source=source,
-                details=details,
+                details=details if details else 'No details available',
                 date_posted=date_posted
             )
             
@@ -75,17 +77,64 @@ def fetch_news_for_scan(sender, instance, created, **kwargs):
     except requests.RequestException as e:
         print(f"[NewsAPI] Error fetching articles for scan {instance.id}: {e}")
 
-@receiver(post_delete, sender=ScanSchedule)
-def delete_scan_schedule_jobs(sender, instance, **kwargs):
+@receiver(post_save, sender=ScanSchedule)
+def schedule_scan(sender, instance, created, **kwargs):
+    """
+    Add or update jobs when a ScanSchedule is saved.
+    """
+    # Remove any existing jobs for this schedule
     try:
         scheduler.remove_job(f"scan_{instance.id}")
-    except Exception:
-        pass  # job might not exist
+    except:
+        pass
 
     try:
-        scheduler.remove_job(f"scan_{instance.id}_weekly")
-    except Exception:
+        scheduler.remove_job(f"scan_{instance.id}_repeat")
+    except:
         pass
+
+    # One-time first run
+    scheduler.add_job(
+        instance.create_scan,
+        "date",
+        run_date=instance.schedule_time,
+        id=f"scan_{instance.id}",
+        replace_existing=True,
+    )
+
+    # Recurring jobs
+    if instance.frequency == "hourly":
+        trigger_args = {"hours": 1}
+    if instance.frequency == "daily":
+        trigger_args = {"days": 1}
+    elif instance.frequency == "weekly":
+        trigger_args = {"weeks": 1}
+    elif instance.frequency == "monthly":
+        trigger_args = {"days": 30}
+    else:
+        trigger_args = None
+
+    if trigger_args:
+        scheduler.add_job(
+            instance.create_scan,
+            "interval",
+            id=f"scan_{instance.id}_repeat",
+            replace_existing=True,
+            **trigger_args
+        )
+    print(f"📅 Scheduled scan {instance.id}")
+
+@receiver(post_delete, sender=ScanSchedule)
+def unschedule_scan(sender, instance, **kwargs):
+    """
+    Remove jobs when a ScanSchedule is deleted.
+    """
+    for job_id in [f"scan_{instance.id}", f"scan_{instance.id}_repeat"]:
+        try:
+            scheduler.remove_job(job_id)
+            print(f"🗑️ Removed job {job_id}")
+        except:
+            pass
 
 THREAT_KEYWORDS = {
     'high': ['ransomware', 'breach', 'leak', 'hacked'],
@@ -123,6 +172,20 @@ def create_alerts_for_scan_result(sender, instance, created, **kwargs):
     else:
         print(f"Scan result {instance.id} updated, checking for alerts.")
         check_result_for_alerts(instance)
+
+@receiver(pre_save, sender=Alert)
+def set_alert_recommendations(sender, instance, **kwargs):
+    print(f"Fetching recommendations for alert {instance.id}")
+    recommendations = get_recommendations_from_ai(instance)
+    if recommendations:
+        instance.recommendations = recommendations.get('recommendations', '')
+        instance.recommendations = instance.recommendations if isinstance(instance.recommendations, str) else ', '.join(instance.recommendations)
+        instance.severity = recommendations.get('severity', instance.severity)
+
+        print(f"Recommendations set for alert {instance.id}: {instance.recommendations}")
+    else:
+        print(f"No recommendations found for alert {instance.id}.")
+    
 
 @receiver(post_save, sender=Alert)
 def send_alert_email(sender, instance, created, **kwargs):

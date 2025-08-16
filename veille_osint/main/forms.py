@@ -30,15 +30,17 @@ class ScanForm(forms.ModelForm):
         frequency = self.cleaned_data.get('frequency')
         keywords = self.cleaned_data.get('keywords')
         
+        breakpoint()
         # If both fields are provided, create a ScanSchedule
         if schedule_time and frequency:
             # Create and assign a ScanSchedule
             schedule = ScanSchedule.objects.create(
-                site=self.cleaned_data['sites'][0],  # or allow user to choose
                 schedule_time=schedule_time,
                 frequency=frequency,
                 keywords=keywords if keywords else None
             )
+            schedule.sites.set(self.cleaned_data.get('sites', []))
+            
             scan.schedule = schedule
 
         if commit:

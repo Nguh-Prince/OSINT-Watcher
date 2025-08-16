@@ -18,7 +18,7 @@ class ScanSchedule(models.Model):
     name = models.CharField(max_length=100, null=True)
     sites = models.ManyToManyField(Sites, related_name='scan_schedules')
     schedule_time = models.DateTimeField()
-    frequency = models.CharField(max_length=20, choices=[('daily', _('Daily')), ('weekly', _('Weekly')), ('monthly', _('Monthly'))])
+    frequency = models.CharField(max_length=20, choices=[ ('hourly', _('Hourly')), ('daily', _('Daily')), ('weekly', _('Weekly')), ('monthly', _('Monthly')) ] )
     keywords = models.TextField(null=True, blank=True)
     last_scan = models.ForeignKey("Scan", on_delete=models.SET_NULL, null=True)
     next_scan_time = models.DateTimeField("Scan", null=True)
@@ -43,6 +43,8 @@ class ScanSchedule(models.Model):
         self.last_scan = scan
 
         delta = None
+        if self.frequency == 'hourly':
+            delta = timedelta(hours=1)
         if self.frequency == 'daily':
             delta = timedelta(days=1)
         elif self.frequency == 'weekly': 
@@ -52,24 +54,8 @@ class ScanSchedule(models.Model):
 
         self.next_scan_time = datetime.now() + delta if delta else None
 
-        self.save()
+        self.save(update_fields=['last_scan', 'next_scan_time'])
         return scan
-
-    def save(self, *args, **kwargs):
-        result = super().save(*args, **kwargs)
-
-        first_run = self.schedule_time
-        scheduler.add_job(self.create_scan, 'date', run_date=first_run, id=f'scan_{self.id}', replace_existing=True)
-
-        if self.frequency == 'daily':
-            scheduler.add_job(self.create_scan, 'interval', days=1, id=f'scan_{self.id}_interval', replace_existing=True)
-        elif self.frequency == 'weekly':
-            scheduler.add_job(self.create_scan, 'interval', weeks=1, id=f'scan_{self.id}_interval', replace_existing=True)
-        elif self.frequency == 'monthly':
-            scheduler.add_job(self.create_scan, 'interval', weeks=4, id=f'scan_{self.id}_interval', replace_existing=True)
-
-        return result
-
 
     
 class Scan(models.Model):
@@ -112,6 +98,7 @@ class Alert(models.Model):
     severity = models.CharField(max_length=10, choices=[('low', 'Low'), ('medium', 'Medium'), ('high', 'High')])
     message = models.TextField(null=True, blank=True)
     resolved = models.BooleanField(default=False)
+    recommendations = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"Alert on {self.alert_date.strftime('%Y-%m-%d %H:%M:%S')}"
