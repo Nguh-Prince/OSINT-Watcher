@@ -17,7 +17,7 @@ from reportlab.lib.pagesizes import A4
 
 from .forms import *
 from .models import *
-from .utils import send_report_as_email
+from .utils import send_report_as_email, generate_report_pdf
 
 # Create your views here.
 def blank_page(request):
@@ -158,42 +158,7 @@ def reports(request):
         report.alerts.set(alerts)
 
         # Generate PDF
-        buffer = io.BytesIO()
-        p = canvas.Canvas(buffer, pagesize=A4)
-        width, height = A4
-        y = height - 50
-        p.setFont("Helvetica-Bold", 16)
-        p.drawString(50, y, f"Report from {start_date} to {end_date}")
-        y -= 30
-
-        p.setFont("Helvetica-Bold", 14)
-        p.drawString(50, y, "Scans")
-        y -= 20
-        p.setFont("Helvetica", 12)
-        for scan in scans:
-            p.drawString(50, y, f"- {scan.scan_start_date} | {scan.status}")
-            y -= 15
-            if y < 50:
-                p.showPage()
-                y = height - 50
-
-        p.setFont("Helvetica-Bold", 14)
-        p.drawString(50, y, "Alerts")
-        y -= 20
-        p.setFont("Helvetica", 12)
-        for alert in alerts:
-            p.drawString(50, y, f"- {alert.alert_date} | {alert.message}")
-            y -= 15
-            if y < 50:
-                p.showPage()
-                y = height - 50
-
-        p.save()
-        buffer.seek(0)
-
-        # Save PDF to model
-        report.file.save(f"report_{start_date}_{end_date}.pdf", ContentFile(buffer.read()))
-        buffer.close()
+        generate_report_pdf(report, scans, alerts)
 
         # Save recipients
         recipients = [email.strip() for email in recipients_str.split(",") if email.strip()]

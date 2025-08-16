@@ -131,6 +131,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 NEWS_API_KEY = config.get('NEWS_API_KEY', 'your_default_news_api_key')
+GEMINI_API_KEY = config.get('GEMINI_API_KEY', 'your_default_gemini_api_key')
 
 LOGIN_REDIRECT_URL = reverse_lazy('dashboard')
 LOGIN_URL = reverse_lazy('login')
