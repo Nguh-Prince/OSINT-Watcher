@@ -199,7 +199,6 @@
       <!-- ========== section start ========== -->
       <section class="section">
         <div class="container-fluid">
-          {% block page_content %}
           <div>
             {% if messages %}
               {% for message in messages %}
@@ -207,6 +206,7 @@
               {% endfor %}
             {% endif %}
           </div>
+          {% block page_content %}
           <!-- ========== title-wrapper start ========== -->
           <div class="title-wrapper pt-30">
             <div class="row align-items-center">
