@@ -1,5 +1,9 @@
+from collections import defaultdict
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
+from django.utils import timezone
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
@@ -9,8 +13,7 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 
-from datetime import datetime
-import io
+from datetime import datetime, timedelta
 from django.core.files.base import ContentFile
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -30,16 +33,70 @@ def index(request):
     return redirect('dashboard')
 
 def dashboard(request):
-    """
-    Render the dashboard template.
-    """
+    now = timezone.now()
+    week_ago = now - timedelta(days=7)
+
+    # Key numbers
+    total_scans = Scan.objects.count()
+    active_alerts = Alert.objects.filter(resolved=False, false_alerts__isnull=True).count()
+    last_report = Report.objects.order_by('-report_end_date').first()
+
+    # --- Line Chart: Alerts by severity per day ---
+    # Get alert counts grouped by severity and date
+    alerts_per_day = (
+        Alert.objects.filter(alert_date__gte=week_ago)
+        .extra({'day': "date(alert_date)"})
+        .values('day', 'severity')
+        .annotate(count=Count('id'))
+        .order_by('day')
+    )
+
+    # Ensure last 7 days are represented
+    days = [(week_ago + timedelta(days=i)).date() for i in range(7)]
+    severities = Alert.objects.values_list('severity', flat=True).distinct()
+
+    # Create mapping: {severity: [counts per day]}
+    severity_data = defaultdict(lambda: [0]*7)
+    day_index = {day: idx for idx, day in enumerate(days)}
+
+    for entry in alerts_per_day:
+        day = entry['day']
+        severity = entry['severity']
+        count = entry['count']
+        if day in day_index:
+            severity_data[severity][day_index[day]] = count
+
+    # --- Pie Chart: Severity Distribution (last 7 days) ---
+    severity_counts = (
+        Alert.objects.filter(alert_date__gte=week_ago)
+        .values('severity')
+        .annotate(count=Count('id'))
+        .order_by('severity')
+    )
+    pie_labels = [entry['severity'].capitalize() for entry in severity_counts]
+    pie_data = [entry['count'] for entry in severity_counts]
+
+    # Tables
+    recent_scans = Scan.objects.order_by('-scan_start_date')[:5]
+    recent_alerts = Alert.objects.filter(resolved=False).order_by('-alert_date')[:5]
+
     context = {
-        'scans_count': Scan.objects.count(),
+        'total_scans': total_scans,
+        'active_alerts': active_alerts,
+        'last_report': last_report,
+        'line_labels': [day.strftime('%Y-%m-%d') for day in days],
+        'severity_data': dict(severity_data),
+        'pie_labels': pie_labels,
+        'pie_data': pie_data,
+        'recent_scans': recent_scans,
+        'recent_alerts': recent_alerts,
+
+        'scans_count': total_scans,
         'alerts_count': Alert.objects.filter(resolved=False).count(),
         'false_alerts_count': FalseAlert.objects.count(),
     }
-    return render(request, 'main/dashboard.html', context=context)
 
+    return render(request, 'main/dashboard.html', context)
 
 def scans(request):
     """
