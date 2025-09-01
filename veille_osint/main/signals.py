@@ -1,6 +1,7 @@
 from django.db.models.signals import pre_save, post_save, pre_delete, post_delete
 from django.dispatch import receiver
 from django.conf import settings
+from django.core.mail import send_mail, EmailMultiAlternatives
 from django.utils.timezone import now
 import requests
 
@@ -63,11 +64,11 @@ def fetch_news_for_scan(sender, instance, created, **kwargs):
             # Step 2: Create Journal entry (extending ScanResult)
             Journal.objects.create(
                 id=scan_result.id,  # required for multi-table inheritance
-                titre=titre,
-                auteur=auteur,
+                titre=titre[:200],
+                auteur=auteur[:100],
                 scan=instance,
                 source=source,
-                details=details,
+                details=details if details else 'No details available',
                 date_posted=date_posted
             )
         
@@ -195,18 +196,42 @@ def send_alert_email(sender, instance, created, **kwargs):
     else:
         print(f"Alert {instance.id} updated, no email sent.")
 
-def send_alert_as_email(alert):
+def send_alert_as_email(alert, recipients=None):
     subject = f"Alert: {alert.severity.capitalize()} threat detected"
-    message = f"Scan Result ID: {alert.result.id}\nSeverity: {alert.severity}\nMessage: {alert.message}\n source: {alert.result.source}\nDetails: {alert.result.details}"
     from_email = settings.EMAIL_HOST_USER
-    recipient_list = ['nguhprince1@gmail.com']  # Replace with actual recipient list
+    recipient_list = ['nguhprince1@gmail.com'] if not recipients else recipients
+
+    # Plain text fallback
+    text_message = (
+        f"Scan Result ID: {alert.result.id}\n"
+        f"Severity: {alert.severity}\n"
+        f"Message: {alert.message}\n"
+        f"Source: {alert.result.source}\n"
+        f"Details: {alert.result.details}\n"
+        f"Recommendations: {alert.recommendations}"
+    )
+
+    # HTML version with bold field names
+    html_message = f"""
+    <html>
+      <body>
+        <p><h4>Scan Result ID:</h4> {alert.result.id}</p>
+        <p><h4>Severity:</h4> {alert.severity}</p>
+        <p><h4>Message:</h4> {alert.message}</p>
+        <p><h4>Source:</h4> {alert.result.source}</p>
+        <p><h4>Details:</h4> {alert.result.details}</p>
+        <p><h4>Recommendations:</h4> {alert.recommendations}</p>
+      </body>
+    </html>
+    """
 
     try:
-        from django.core.mail import send_mail
-        send_mail(subject, message, from_email, recipient_list)
-        print(f"Alert email sent for alert {alert.id}")
+        email = EmailMultiAlternatives(subject, text_message, from_email, recipient_list)
+        email.attach_alternative(html_message, "text/html")
+        email.send()
+        print(f"✅ Alert email sent for alert {alert.id}")
     except Exception as e:
-        print(f"Failed to send alert email for alert {alert.id}: {e}")
+        print(f"❌ Failed to send alert email for alert {alert.id}: {e}")
 
 @receiver(pre_delete, sender=Report)
 def delete_report_file(sender, instance, **kwargs):

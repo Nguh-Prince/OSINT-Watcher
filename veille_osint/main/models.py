@@ -18,7 +18,7 @@ class ScanSchedule(models.Model):
     name = models.CharField(max_length=100, null=True)
     sites = models.ManyToManyField(Sites, related_name='scan_schedules')
     schedule_time = models.DateTimeField()
-    frequency = models.CharField(max_length=20, choices=[ ('hourly', _('Hourly')), ('daily', _('Daily')), ('weekly', _('Weekly')), ('monthly', _('Monthly')) ] )
+    frequency = models.CharField(max_length=20, choices=[ ('hourly', _('Par Heure')), ('daily', _('Journalier')), ('weekly', _('Hebdomadaire')), ('monthly', _('Mensuel')) ] )
     keywords = models.TextField(null=True, blank=True)
     last_scan = models.ForeignKey("Scan", on_delete=models.SET_NULL, null=True)
     next_scan_time = models.DateTimeField("Scan", null=True)

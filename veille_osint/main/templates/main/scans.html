@@ -25,7 +25,7 @@
         <div class="col-lg-12">
             <div class="card-style mb-30">
                 <div class="table-wrapper table-responsive">
-                    <table class="table">
+                    <table class="table" id="scans-table">
                         <thead>
                         <tr>
                             <th>
@@ -195,4 +195,10 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    new DataTable('#scans-table');
+</script>
 {% endblock %}

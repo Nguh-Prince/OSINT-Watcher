@@ -69,6 +69,7 @@ def quick_scan(request):
             keywords=keywords,
             status="pending"
         )
+        scan.sites.set(Sites.objects.all())
         results = ScanResult.objects.filter(scan=scan)
 
         return render(request, "main/quick_scan_results.html", {

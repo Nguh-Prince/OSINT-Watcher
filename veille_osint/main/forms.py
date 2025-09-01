@@ -18,8 +18,8 @@ class ScanForm(forms.ModelForm):
         fields = ['name', 'sites', 'keywords']
         widgets = {
             'sites': forms.SelectMultiple(attrs={'class': 'form-control'}),
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter scan name'}),
-            'keywords': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Enter keywords (optional)', 'rows': 3}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nom du scan ex: Scan 1'}),
+            'keywords': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Donnez les mots cles (optionel)', 'rows': 3}),
         }
 
     def save(self, commit=True):

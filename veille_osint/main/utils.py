@@ -81,6 +81,8 @@ def get_recommendations_from_ai(alert):
                             You are a cybersecurity professional working in an African bacnk. The following was picked up from a site, 
                             provide security recommendations for it {alert.result.details} considering it was for the bank and to be implemented in the bank's system.
 
+                            These security recommendations should be short and be maximum of 5 and minimum of 2. They should be listed in markdown format and each recommendation should be on a new line. Each recommendation should have the format: 'recommendation: application' e.g. 'Strengthen passwords: change old passwords to stronger ones and validate password strength henceforth'
+
                             Also, give the alert's severity level based on the content of the alert and how applicable it is to the bank's system. The output should be in JSON format with the following structure:
                             {{
                                 "severity": "low" | "medium" | "high",

@@ -34,9 +34,6 @@
                                 <h6>{% trans "Message" %}</h6>
                             </th>
                             <th>
-                                <h6>{% trans "Scan" %}</h6>
-                            </th>
-                            <th>
                             <h6>Severite</h6>
                             </th>
                             <th>
@@ -64,16 +61,7 @@
                             <td class="min-width">
                                 <p style="text-decoration: underline;">
                                     {% if alert.result.journal %}
-                                    {{ alert.result.journal.titre|truncatechars:50|default:"<span class='text-muted'>---</span>"|safe }}
-                                    {% else %}
-                                    <span class="text-muted">---</span>
-                                    {% endif %}
-                                </p>
-                            </td>
-                            <td class="min-width">
-                                <p>
-                                    {% if alert.message %}
-                                    {{ alert.message|truncatechars:100|default:"<span class='text-muted'>---</span>"|safe }}
+                                    {{ alert.result.journal.titre|truncatechars:20|default:"<span class='text-muted'>---</span>"|safe }}
                                     {% else %}
                                     <span class="text-muted">---</span>
                                     {% endif %}
@@ -126,8 +114,23 @@
                                         data-id="{{ alert.id }}"
                                         onclick="document.getElementById('falseAlertForm').setAttribute('action', '/alerts/' + this.getAttribute('data-id') + '/mark-false/');"
                                     >
-                                        Fausse Alerte
+                                        Fausse
                                     </button>
+
+                                    {% if alert.recommendations %}
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary btn-sm view-recommendations-btn"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#recommendationsModal"
+                                        data-id="{{ alert.id }}"
+                                        data-message="{{ alert.message }}"
+                                        data-recommendations="{{ alert.recommendations }}"
+                                        onclick="showRecommendations('{{ alert.message|escapejs }}', '{{ alert.recommendations|escapejs }}')"
+                                    >
+                                        Recommandations
+                                    </button>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>
@@ -165,6 +168,27 @@
   </div>
 </div>
 
+<div class="modal fade" id="recommendationsModal" tabindex="-1" aria-labelledby="recommendationsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="recommendationsModalLabel">Alert Recommendations</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Message:</strong></p>
+        <p id="alertMessage" class="text-muted"></p>
+        <hr>
+        <p><strong>Recommendations:</strong></p>
+        <p id="alertRecommendations" class="text-muted"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -173,18 +197,9 @@
 </script>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-//     const falseAlertForm = document.getElementById("falseAlertForm");
-//     const falseAlertButtons = document.querySelectorAll(".false-alert-btn");
-
-//     falseAlertButtons.forEach(button => {
-//         button.addEventListener("click", function () {
-//             const id = this.getAttribute("data-id");
-//             falseAlertForm.setAttribute("action", `/alert/${id}/false/`);
-
-//             // falseAlertForm.submit();
-//         });
-//     });
-});
+function showRecommendations(message, recommendations) {
+    document.getElementById('alertMessage').textContent = message || "No message available";
+    document.getElementById('alertRecommendations').textContent = recommendations || "No recommendations available";
+}
 </script>
 {% endblock %}
