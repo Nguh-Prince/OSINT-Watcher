@@ -3,6 +3,10 @@ import json
 import re
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+
 import requests
 
 from django.conf import settings
@@ -24,47 +28,72 @@ def send_report_as_email(report):
     except Exception as e:
         print(f"Failed to send report email for report {report.id}: {e}")
 
-
 def generate_report_pdf(report, scans, alerts):
     start_date, end_date = report.report_start_date, report.report_end_date
     buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
-    y = height - 50
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(50, y, f"Report from {start_date} to {end_date}")
-    y -= 30
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    elements = []
+    styles = getSampleStyleSheet()
 
-    p.setFont("Helvetica-Bold", 14)
-    p.drawString(50, y, "Scans")
-    y -= 20
-    p.setFont("Helvetica", 12)
+    # Title
+    elements.append(Paragraph(f"<b>Report from {start_date} to {end_date}</b>", styles['Title']))
+    elements.append(Spacer(1, 20))
+
+    # ==========================
+    # Scans Table
+    # ==========================
+    scan_data = [["Name", "Sites", "Number of Results"]]
     for scan in scans:
-        p.drawString(50, y, f"- {scan.scan_start_date} | {scan.status}")
-        y -= 15
-        if y < 50:
-            p.showPage()
-            y = height - 50
+        sites = ", ".join([site.name for site in scan.sites.all()])
+        result_count = scan.results.count()
+        scan_data.append([scan.name or "N/A", sites, str(result_count)])
 
-    p.setFont("Helvetica-Bold", 14)
-    p.drawString(50, y, "Alerts")
-    y -= 20
-    p.setFont("Helvetica", 12)
+    scan_table = Table(scan_data, hAlign='LEFT')
+    scan_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.purple),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+    ]))
+    elements.append(Paragraph("<b>Scans</b>", styles['Heading2']))
+    elements.append(scan_table)
+    elements.append(Spacer(1, 20))
+
+    # ==========================
+    # Alerts Table
+    # ==========================
+    alert_data = [["Source", "Message", "Severity", "Recommendations"]]
     for alert in alerts:
-        p.drawString(50, y, f"- {alert.alert_date} | {alert.message}")
-        y -= 15
-        if y < 50:
-            p.showPage()
-            y = height - 50
+        source_link = f'<a href="{alert.result.source}">{alert.result.source}</a>' if alert.result.source else "N/A"
+        message = alert.message or "N/A"
+        severity = alert.severity.capitalize() if alert.severity else "N/A"
+        recommendations = alert.recommendations or "N/A"
+        alert_data.append([source_link, message, severity, recommendations])
 
-    p.save()
-    buffer.seek(0)
+    alert_table = Table(alert_data, hAlign='LEFT', colWidths=[120, 150, 60, 120])
+    alert_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.purple),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+    ]))
+    elements.append(Paragraph("<b>Alerts</b>", styles['Heading2']))
+    elements.append(alert_table)
+
+    # Build PDF
+    doc.build(elements)
 
     # Save PDF to model
-    report.file.save(f"report_{start_date}_{end_date}.pdf", ContentFile(buffer.read()))
-    print(f"PDF generated for report {report.id} and saved to {report.file.name}")
+    buffer.seek(0)
+    filename = f"report_{start_date}_{end_date}.pdf"
+    report.file.save(filename, ContentFile(buffer.read()))
     buffer.close()
-
+    print(f"PDF generated for report {report.id} and saved to {report.file.name}")
+    
 def get_recommendations_from_ai(alert):
     """
     Call an AI service to get recommendations based on the alert details.
