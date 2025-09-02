@@ -80,7 +80,7 @@ class ScanResult(models.Model):
     details = models.TextField()
 
     def __str__(self):
-        return f"Result for {self.site.name} - {self.status} on {self.result_date.strftime('%Y-%m-%d %H:%M:%S')}"
+        return f"Result for {self.source.name}"
     
 class ReseauSocial(ScanResult):
     auteur = models.CharField(max_length=100)
@@ -102,6 +102,24 @@ class Alert(models.Model):
 
     def __str__(self):
         return f"Alert on {self.alert_date.strftime('%Y-%m-%d %H:%M:%S')}"
+    
+    @property
+    def get_recommendations(self):
+        return self.recommendations
+    
+    @property
+    def get_recommendations_html(self):
+        return self.get_recommendations.replace('\n', '<br>').replace(',', '<br>') if self.get_recommendations else ''
+    
+    @property
+    def get_recommendations_list(self):
+        if self.recommendations:
+            if '\n' in self.recommendations:
+                return [rec.strip() for rec in self.recommendations.split('\n') if rec.strip()]
+            elif ',' in self.recommendations:
+                return [rec.strip() for rec in self.recommendations.split(',') if rec.strip()]
+            else:
+                return self.recommendations
 
 class FalseAlert(models.Model):
     alert = models.OneToOneField(Alert, related_name='false_alerts', on_delete=models.CASCADE)

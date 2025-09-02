@@ -8,6 +8,8 @@ import requests
 from .models import *
 from .utils import get_recommendations_from_ai
 
+from .ai_model import AlertClassifier
+
 from apscheduler.schedulers.background import BackgroundScheduler
 
 scheduler = BackgroundScheduler()
@@ -149,20 +151,25 @@ THREAT_LEVEL = {
 
 def check_result_for_alerts(scan_result):
     content = f"{scan_result.details} {getattr(scan_result, 'titre', '')}".lower()
+    classifier = AlertClassifier()
+
+    result = classifier.predict(content)
+
     matched = []
-    alert_level = None
 
     for level, keywords in THREAT_KEYWORDS.items():
         for word in keywords:
             if word in content:
                 matched.append(word)
-                alert_level = level if not alert_level or THREAT_LEVEL[alert_level] < THREAT_LEVEL[level] else alert_level 
-
-    if matched:
+    
+    alert_level = result.get('severity', None)
+    
+    if alert_level:
         Alert.objects.create(
             result=scan_result,
             severity=alert_level,
-            message=f"Mots cles detectees: {', '.join(matched)}"
+            message=f"Mots detectees: {', '.join(matched)}",
+            recommendations=result.get('recommendations', '')
         )
 
 @receiver(post_save, sender=ScanResult)
@@ -174,18 +181,18 @@ def create_alerts_for_scan_result(sender, instance, created, **kwargs):
         print(f"Scan result {instance.id} updated, checking for alerts.")
         check_result_for_alerts(instance)
 
-@receiver(pre_save, sender=Alert)
-def set_alert_recommendations(sender, instance, **kwargs):
-    print(f"Fetching recommendations for alert {instance.id}")
-    recommendations = get_recommendations_from_ai(instance)
-    if recommendations:
-        instance.recommendations = recommendations.get('recommendations', '')
-        instance.recommendations = instance.recommendations if isinstance(instance.recommendations, str) else ', '.join(instance.recommendations)
-        instance.severity = recommendations.get('severity', instance.severity)
+# @receiver(pre_save, sender=Alert)
+# def set_alert_recommendations(sender, instance, **kwargs):
+#     print(f"Fetching recommendations for alert {instance.id}")
+#     recommendations = get_recommendations_from_ai(instance)
+#     if recommendations:
+#         instance.recommendations = recommendations.get('recommendations', '')
+#         instance.recommendations = instance.recommendations if isinstance(instance.recommendations, str) else '\n'.join(instance.recommendations)
+#         instance.severity = recommendations.get('severity', instance.severity)
 
-        print(f"Recommendations set for alert {instance.id}: {instance.recommendations}")
-    else:
-        print(f"No recommendations found for alert {instance.id}.")
+#         print(f"Recommendations set for alert {instance.id}: {instance.recommendations}")
+#     else:
+#         print(f"No recommendations found for alert {instance.id}.")
     
 
 @receiver(post_save, sender=Alert)

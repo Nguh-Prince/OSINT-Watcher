@@ -117,7 +117,7 @@
                                         Fausse
                                     </button>
 
-                                    {% if alert.recommendations %}
+                                    {% if alert.get_recommendations_html %}
                                     <button
                                         type="button"
                                         class="btn btn-outline-primary btn-sm view-recommendations-btn"
@@ -125,8 +125,8 @@
                                         data-bs-target="#recommendationsModal"
                                         data-id="{{ alert.id }}"
                                         data-message="{{ alert.message }}"
-                                        data-recommendations="{{ alert.recommendations }}"
-                                        onclick="showRecommendations('{{ alert.message|escapejs }}', '{{ alert.recommendations|escapejs }}')"
+                                        data-recommendations="{{ alert.get_recommendations_html }}"
+                                        onclick="showRecommendations('{{ alert.message|escapejs }}', '{{ alert.get_recommendations_html|escapejs|safe }}')"
                                     >
                                         Recommandations
                                     </button>
