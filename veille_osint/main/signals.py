@@ -164,7 +164,7 @@ def check_result_for_alerts(scan_result):
     
     alert_level = result.get('severity', None)
     
-    if alert_level:
+    if alert_level.lower() != 'none':
         Alert.objects.create(
             result=scan_result,
             severity=alert_level,
@@ -206,7 +206,7 @@ def send_alert_email(sender, instance, created, **kwargs):
 def send_alert_as_email(alert, recipients=None):
     subject = f"Alert: {alert.severity.capitalize()} threat detected"
     from_email = settings.EMAIL_HOST_USER
-    recipient_list = ['nguhprince1@gmail.com'] if not recipients else recipients
+    recipient_list = [settings.ALERT_TARGET_EMAIL] if not recipients else recipients
 
     # Plain text fallback
     text_message = (

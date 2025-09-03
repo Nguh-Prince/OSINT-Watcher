@@ -142,3 +142,5 @@ EMAIL_USE_TLS = config.get('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_PORT = config.get('EMAIL_PORT', 587)
 EMAIL_HOST_USER = config.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = config.get('EMAIL_HOST_PASSWORD', '')
+
+ALERT_TARGET_EMAIL = config.get('ALERT_TARGET_EMAIL', 'angefojou62@gmail.com')
