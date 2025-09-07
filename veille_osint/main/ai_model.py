@@ -92,6 +92,8 @@ class AlertClassifier:
         }}
 
         Respond in {self.language}.
+
+        Please don't translate the severity to the target language. Leave it in English (i.e. no matter the language, severity should either be none, high, medium or low). Don't give any recommendations if severity is none.
         """
 
         try:

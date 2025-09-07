@@ -153,25 +153,28 @@ def check_result_for_alerts(scan_result):
     content = f"{scan_result.details} {getattr(scan_result, 'titre', '')}".lower()
     classifier = AlertClassifier()
 
-    result = classifier.predict(content)
+    try:
+        result = classifier.predict(content)
 
-    matched = []
+        matched = []
 
-    for level, keywords in THREAT_KEYWORDS.items():
-        for word in keywords:
-            if word in content:
-                matched.append(word)
-    
-    alert_level = result.get('severity', None)
-    
-    if alert_level.lower() != 'none':
-        Alert.objects.create(
-            result=scan_result,
-            severity=alert_level,
-            message=f"Mots detectees: {', '.join(matched)}",
-            recommendations=result.get('recommendations', '')
-        )
-
+        for level, keywords in THREAT_KEYWORDS.items():
+            for word in keywords:
+                if word in content:
+                    matched.append(word)
+        
+        alert_level = result.get('severity', None)
+        
+        if alert_level.lower() != 'none':
+            Alert.objects.create(
+                result=scan_result,
+                severity=alert_level,
+                message=f"Mots detectees: {', '.join(matched)}",
+                recommendations=result.get('recommendations', '')
+            )
+    except Exception as e:
+        print(f"Error classifying scan result {scan_result.id}: {e}")
+        
 @receiver(post_save, sender=ScanResult)
 def create_alerts_for_scan_result(sender, instance, created, **kwargs):
     if created:
@@ -181,18 +184,6 @@ def create_alerts_for_scan_result(sender, instance, created, **kwargs):
         print(f"Scan result {instance.id} updated, checking for alerts.")
         check_result_for_alerts(instance)
 
-# @receiver(pre_save, sender=Alert)
-# def set_alert_recommendations(sender, instance, **kwargs):
-#     print(f"Fetching recommendations for alert {instance.id}")
-#     recommendations = get_recommendations_from_ai(instance)
-#     if recommendations:
-#         instance.recommendations = recommendations.get('recommendations', '')
-#         instance.recommendations = instance.recommendations if isinstance(instance.recommendations, str) else '\n'.join(instance.recommendations)
-#         instance.severity = recommendations.get('severity', instance.severity)
-
-#         print(f"Recommendations set for alert {instance.id}: {instance.recommendations}")
-#     else:
-#         print(f"No recommendations found for alert {instance.id}.")
     
 
 @receiver(post_save, sender=Alert)
