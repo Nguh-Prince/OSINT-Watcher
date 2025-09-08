@@ -125,7 +125,7 @@ class AlertClassifier:
 
 
 """
-from model import *
+from main.ai_model import *
 from main.models import *
 
 classifier = AlertClassifier()

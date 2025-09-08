@@ -30,7 +30,6 @@ class ScanForm(forms.ModelForm):
         frequency = self.cleaned_data.get('frequency')
         keywords = self.cleaned_data.get('keywords')
         
-        breakpoint()
         # If both fields are provided, create a ScanSchedule
         if schedule_time and frequency:
             # Create and assign a ScanSchedule

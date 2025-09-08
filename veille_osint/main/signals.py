@@ -3,6 +3,7 @@ from django.dispatch import receiver
 from django.conf import settings
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.utils.timezone import now
+from dateutil import parser
 import requests
 
 from .models import *
@@ -24,7 +25,7 @@ def fetch_news_for_scan(sender, instance, created, **kwargs):
     
     print("Fetching news for scan:", instance.id)
 
-    keywords = instance.keywords.strip().replace(" ", "+").replace(",", "+")  # Format keywords for URL
+    keywords = instance.keywords.strip().replace(",", "+")  # Format keywords for URL
     api_key = settings.NEWS_API_KEY
     url = f"https://newsapi.org/v2/everything?q={keywords}&apiKey={api_key}"
 
@@ -49,30 +50,32 @@ def fetch_news_for_scan(sender, instance, created, **kwargs):
             titre = article.get('title', 'No Title')
             auteur = article.get('author', 'Unknown')
             auteur = auteur if auteur else 'Unknown'
+            try:
+                # Convert ISO 8601 string to datetime if necessary
+                if isinstance(date_posted, str):
+                    date_posted = parser.parse(date_posted)
 
-            # Convert ISO 8601 string to datetime if necessary
-            if isinstance(date_posted, str):
-                from dateutil import parser
-                date_posted = parser.parse(date_posted)
-
-            # Step 1: Create ScanResult
-            scan_result = ScanResult.objects.create(
-                scan=instance,
-                source=source,
-                details=details if details else 'No details available',
-                date_posted=date_posted
-            )
+                # Step 1: Create ScanResult
+                scan_result = ScanResult.objects.create(
+                    scan=instance,
+                    source=source,
+                    details=details if details else 'No details available',
+                    date_posted=date_posted
+                )
+                
+                # Step 2: Create Journal entry (extending ScanResult)
+                Journal.objects.create(
+                    id=scan_result.id,  # required for multi-table inheritance
+                    titre=titre[:200],
+                    auteur=auteur[:100],
+                    scan=instance,
+                    source=source,
+                    details=details if details else 'No details available',
+                    date_posted=date_posted
+                )
+            except Exception as e:
+                print(f"Error creating ScanResult or Journal for article: {e}")
             
-            # Step 2: Create Journal entry (extending ScanResult)
-            Journal.objects.create(
-                id=scan_result.id,  # required for multi-table inheritance
-                titre=titre[:200],
-                auteur=auteur[:100],
-                scan=instance,
-                source=source,
-                details=details if details else 'No details available',
-                date_posted=date_posted
-            )
         
         instance.status = "completed"
         instance.save()

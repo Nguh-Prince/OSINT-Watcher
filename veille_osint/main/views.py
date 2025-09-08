@@ -102,7 +102,7 @@ def scans(request):
     """
     Handle Scan creation via GET and POST.
     """
-    scans = Scan.objects.all()
+    scans = Scan.objects.all().order_by('-scan_start_date')
 
     if request.method == 'POST':
         form = ScanForm(request.POST)

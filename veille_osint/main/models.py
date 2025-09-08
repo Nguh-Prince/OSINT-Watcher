@@ -147,3 +147,54 @@ class ReportRecipients(models.Model):
 
     def __str__(self):
         return f"Recipient for report {self.report.id} - {self.email}"
+
+""""
+from datetime import datetime, timedelta
+from django.utils.timezone import now
+from main.models import Sites, ScanSchedule, Scan  # Adjust `main` to your app name
+
+# 🔑 Full keyword list for your dataset collection
+keywords = [
+    "financial cyber attack",
+    # Threat actors
+    "APT group", "cyber espionage", "nation-state hacking", "state-sponsored attack",
+    # Malware
+    "ransomware", "malware", "spyware", "trojan horse", "backdoor malware", "wiper malware",
+    # Social engineering
+    "phishing attack", "spear phishing", "vishing", "smishing",
+    # Vulnerabilities
+    "zero-day", "CVE vulnerability", "exploit", "patch Tuesday",
+    # Cloud & infra
+    "cloud security", "AWS hack", "Azure breach", "Google Cloud vulnerability", "cloud misconfiguration",
+    # Critical infrastructure
+    "ICS SCADA attack", "OT security", "power grid cyber attack", "nuclear cyber threat",
+    # Regional (African context)
+    "Cameroon bank hacking", "African bank breach", "African cyber crime",
+    # Other
+    "data breach", "DDoS", "supply chain attack", "cyber extortion", "botnet", "cryptojacking", "dark web"
+]
+
+# Join keywords into one big comma-separated string
+keywords_str = ", ".join(keywords)
+
+# Fetch all current sites
+all_sites = list(Sites.objects.all())
+
+if not all_sites:
+    print("⚠️ No sites in database! Add Sites first.")
+else:
+    for keyword in keywords:
+        keyword_str = keyword.strip().replace(" ", "+")
+        print(f"🔍 Creating scan for keyword: {keyword}")
+        # Create a Scan tied to this schedule
+        scan = Scan.objects.create(
+            name=f"{keyword_str}-{now().strftime('%Y-%m-%d %H:%M:%S')}",
+            status="pending",
+            keywords=keyword_str
+        )
+        scan.sites.set(all_sites)
+        scan.save()
+
+        print(f"✅ Created ScanSchedule (id={schedule.id}) and Scan (id={scan.id})")
+        print(f"🔍 Keywords used: {keywords_str}")
+"""
