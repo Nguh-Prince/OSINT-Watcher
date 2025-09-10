@@ -75,8 +75,8 @@ DATABASES = {
     } if not USE_MYSQL else {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': config.get('MYSQL_DB_NAME', 'osint'),
-        'USER': config['MYSQL_USER'],
-        'PASSWORD': config['MYSQL_PASSWORD'],
+        'USER': config.get('MYSQL_USER', 'root'),
+        'PASSWORD': config.get('MYSQL_PASSWORD', 'root'),
         'HOST': config.get('DB_HOST', 'localhost'),
         'PORT': config.get('DB_PORT', '3306'),
         'OPTIONS': {
